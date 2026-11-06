@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#172e28"><meta name="description" content="Controle financeiro da Barbearia Moleque de Vila">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Moleque de Vila | Barber App</title>
+<style>
+:root{--green:#172e28;--gold:#d8b77a;--bg:#f4f5f2;--card:#fff;--ink:#17211d;--muted:#66736c;--line:#e2e7e2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--green);color:white;padding:24px 18px 20px;text-align:center}header .mark{font-size:25px;color:var(--gold)}header h1{font-size:22px;letter-spacing:1.4px;margin:5px 0}header p{font-size:11px;letter-spacing:2px;margin:0;color:#d9e1dc}
+main{max-width:850px;margin:auto;padding:16px}.panel,.metric{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:14px;box-shadow:0 2px 8px #12251a08}
+h2{font-size:17px;margin:0 0 12px}.filters,.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}input,select{width:100%;padding:11px;border:1px solid #ccd5ce;border-radius:9px;background:white;font:inherit;color:var(--ink)}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}.metric small{color:var(--muted)}.metric strong{display:block;font-size:21px;margin-top:5px}.green{color:#167447}.gold{color:#9a7028}
+button{border:0;border-radius:10px;padding:12px 14px;font:600 14px system-ui;cursor:pointer;background:var(--green);color:white}.secondary{background:#e9eee9;color:var(--green)}.danger{background:#fff0ef;color:#a32f28}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.row{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:center;margin:8px 0}.row label{margin:0;color:var(--ink);font-size:14px}
+.tabs{display:flex;gap:8px;overflow:auto;margin:0 0 14px}.tabs button{white-space:nowrap}.tabs .active{background:var(--gold);color:#172e28}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px 5px;border-bottom:1px solid var(--line)}th{color:var(--muted)}
+.notice{font-size:12px;color:var(--muted);line-height:1.5}.hidden{display:none}.empty{color:var(--muted);font-size:13px;padding:12px 0}
+@media(min-width:650px){.metrics{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body>
+<header><div class="mark">✂</div><h1>MOLEQUE DE VILA</h1><p>BARBER APP · CONTROLE EXCLUSIVO</p></header>
+<main>
+<div class="tabs">
+<button class="active" data-tab="dash">Resumo</button><button class="secondary" data-tab="entry">Novo fechamento</button><button class="secondary" data-tab="history">Histórico</button>
+</div>
+<section id="dash">
+<div class="panel"><div class="filters">
+<div><label>Período</label><select id="period"><option value="day">Diário</option><option value="week">Semanal</option><option value="month">Mensal</option></select></div>
+<div><label>Data de referência</label><input type="date" id="refdate"></div>
+</div></div>
+<div class="metrics">
+<div class="metric"><small>Faturamento</small><strong id="mGross">R$ 0,00</strong></div>
+<div class="metric"><small>Despesas</small><strong id="mExpense">R$ 0,00</strong></div>
+<div class="metric"><small>Lucro estimado</small><strong class="green" id="mProfit">R$ 0,00</strong></div>
+<div class="metric"><small>Clientes</small><strong id="mClients">0</strong></div>
+</div>
+<div class="panel"><h2>Recebimentos</h2><div id="payments" class="empty">Nenhum fechamento neste período.</div></div>
+<div class="panel"><h2>Serviços no período</h2><div id="services" class="empty">Os serviços aparecerão após o primeiro lançamento.</div></div>
+<div class="panel"><h2>Exportar relatório</h2><p class="notice">Gera um arquivo CSV que abre no Excel, com os lançamentos do período selecionado.</p><button id="export">Exportar para Excel (CSV)</button></div>
+</section>
+<section id="entry" class="hidden">
+<div class="panel"><h2>Novo fechamento</h2><div><label>Data do fechamento</label><input id="date" type="date"></div>
+<h2 style="margin-top:18px">Faturamento por serviço (R$)</h2><div id="serviceInputs"></div>
+<h2 style="margin-top:18px">Formas de pagamento (R$)</h2><div id="payInputs"></div>
+<div class="row"><label>Despesas do dia (R$)</label><input id="expenses" type="number" min="0" step=".01" placeholder="0,00"></div>
+<div class="row"><label>Clientes atendidos</label><input id="clients" type="number" min="0" step="1" placeholder="0"></div>
+<div class="panel" style="background:#f4f6f2"><div class="row"><label>Total dos serviços</label><strong id="previewGross">R$ 0,00</strong></div><div class="row"><label>Total recebido</label><strong id="previewPaid">R$ 0,00</strong></div><div class="row"><label>Lucro estimado</label><strong id="previewProfit" class="green">R$ 0,00</strong></div><p id="balanceWarning" class="notice"></p></div>
+<div class="actions"><button id="save">Salvar fechamento</button><button class="secondary" id="clear">Limpar campos</button></div></div>
+</section>
+<section id="history" class="hidden"><div class="panel"><h2>Histórico de fechamentos</h2><div id="historyList" class="empty">Nenhum lançamento salvo.</div></div><div class="panel"><h2>Backup dos dados</h2><p class="notice">Baixe uma cópia dos seus lançamentos para guardar em segurança ou restaurar futuramente.</p><div class="actions"><button id="backup">Baixar backup</button><button class="secondary" id="restoreBtn">Restaurar backup</button><input id="restoreFile" type="file" accept="application/json" class="hidden"></div></div></section>
+<p class="notice">Dados armazenados neste navegador e aparelho. Não há conta online nem sincronização automática. Exporte ou faça backup regularmente. Para instalar como aplicativo, esta versão precisa ser publicada em um endereço HTTPS.</p>
+</main>
+<script>
+const serviceNames=['Corte','Barba','Progressiva','Luzes','Alisante','Sobrancelha','Outros'];
+const payNames=['Dinheiro','Pix','Cartão'];
+const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const $=id=>document.getElementById(id);
+const today=new Date().toISOString().slice(0,10);
+$('date').value=today;$('refdate').value=today;
+let records=JSON.parse(localStorage.getItem('moleque_records')||'[]');
+function makeInputs(id,names,prefix){$(id).innerHTML=names.map((n,i)=>`<div class="row"><label>${n}</label><input type="number" min="0" step=".01" id="${prefix}${i}" placeholder="0,00"></div>`).join('');$(id).querySelectorAll('input').forEach(x=>x.addEventListener('input',preview))}
+makeInputs('serviceInputs',serviceNames,'s');makeInputs('payInputs',payNames,'p');
+function vals(prefix,count){return Array.from({length:count},(_,i)=>Math.max(0,Number($(`${prefix}${i}`).value)||0))}
+function preview(){let s=vals('s',7),p=vals('p',3),g=s.reduce((a,b)=>a+b,0),paid=p.reduce((a,b)=>a+b,0),e=Math.max(0,Number($('expenses').value)||0);$('previewGross').textContent=money(g);$('previewPaid').textContent=money(paid);$('previewProfit').textContent=money(g-e);$('balanceWarning').textContent=Math.abs(g-paid)>.009?'Atenção: total dos serviços diferente do total recebido. Confira os valores.':''}
+$('expenses').addEventListener('input',preview);
+$('save').onclick=()=>{let services=vals('s',7),payments=vals('p',3),gross=services.reduce((a,b)=>a+b,0),paid=payments.reduce((a,b)=>a+b,0),expenses=Math.max(0,Number($('expenses').value)||0),clients=Math.max(0,Math.floor(Number($('clients').value)||0));if(gross===0&&paid===0&&expenses===0&&clients===0){alert('Preencha pelo menos um campo antes de salvar.');return}records.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date:$('date').value,services,payments,gross,paid,expenses,clients});persist();clearForm();render();switchTab('dash');alert('Fechamento salvo neste aparelho.')};
+function clearForm(){document.querySelectorAll('#entry input[type=number]').forEach(x=>x.value='');$('date').value=today;preview()}
+$('clear').onclick=clearForm;
+function persist(){localStorage.setItem('moleque_records',JSON.stringify(records))}
+function weekStart(d){let x=new Date(d+'T12:00:00');x.setDate(x.getDate()-(x.getDay()+6)%7);return x.toISOString().slice(0,10)}
+function selected(){let d=$('refdate').value,p=$('period').value;return records.filter(r=>p==='day'?r.date===d:p==='month'?r.date.slice(0,7)===d.slice(0,7):weekStart(r.date)===weekStart(d))}
+function render(){let list=selected(),gross=list.reduce((a,r)=>a+r.gross,0),exp=list.reduce((a,r)=>a+r.expenses,0),clients=list.reduce((a,r)=>a+r.clients,0),pays=[0,0,0],services=Array(7).fill(0);list.forEach(r=>{r.payments.forEach((v,i)=>pays[i]+=v);r.services.forEach((v,i)=>services[i]+=v)});
+$('mGross').textContent=money(gross);$('mExpense').textContent=money(exp);$('mProfit').textContent=money(gross-exp);$('mClients').textContent=clients;
+$('payments').innerHTML=list.length?payNames.map((n,i)=>`<div class="row"><label>${n}</label><strong>${money(pays[i])}</strong></div>`).join(''):'Nenhum fechamento neste período.';
+$('services').innerHTML=list.length?serviceNames.map((n,i)=>`<div class="row"><label>${n}</label><strong>${money(services[i])}</strong></div>`).join(''):'Os serviços aparecerão após o primeiro lançamento.';
+$('historyList').innerHTML=records.length?`<table><thead><tr><th>Data</th><th>Faturamento</th><th>Despesas</th><th>Lucro</th><th></th></tr></thead><tbody>${[...records].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`<tr><td>${r.date.split('-').reverse().join('/')}</td><td>${money(r.gross)}</td><td>${money(r.expenses)}</td><td>${money(r.gross-r.expenses)}</td><td><button class="danger" data-del="${r.id}">Excluir</button></td></tr>`).join('')}</tbody></table>`:'Nenhum lançamento salvo.';
+document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('Excluir este fechamento?')){records=records.filter(r=>r.id!==b.dataset.del);persist();render()}})}
+function switchTab(tab){document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hidden',s.id!==tab));document.querySelectorAll('.tabs button').forEach(b=>{let on=b.dataset.tab===tab;b.classList.toggle('active',on);b.classList.toggle('secondary',!on)})}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+$('period').onchange=render;$('refdate').onchange=render;
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+$('export').onclick=()=>{let list=selected();if(!list.length){alert('Não há lançamentos neste período.');return}let rows=[['Data',...serviceNames,'Dinheiro','Pix','Cartão','Faturamento','Total recebido','Despesas','Lucro estimado','Clientes']];list.forEach(r=>rows.push([r.date,...r.services,...r.payments,r.gross,r.paid,r.expenses,r.gross-r.expenses,r.clients]));let csv='\ufeff'+rows.map(row=>row.map(csvCell).join(';')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'moleque-de-vila-relatorio.csv')};
+function download(blob,name){let a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+$('backup').onclick=()=>download(new Blob([JSON.stringify(records,null,2)],{type:'application/json'}),'backup-moleque-de-vila.json');
+$('restoreBtn').onclick=()=>$('restoreFile').click();
+$('restoreFile').onchange=async e=>{try{let data=JSON.parse(await e.target.files[0].text());if(!Array.isArray(data))throw Error();if(confirm('Substituir os dados atuais pelo backup?')){records=data;persist();render();alert('Backup restaurado.')}}catch{alert('Arquivo de backup inválido.')}e.target.value=''};
+if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+render();preview();
+</script></body></html>
