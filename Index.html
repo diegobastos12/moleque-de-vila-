@@ -44,7 +44,15 @@ function inPeriod(d){let ref=$('refDate').value||today(),p=$('period').value;if(
 function render(){let list=entries.filter(e=>inPeriod(e.date)),s=sums(list),paid=s.cash+s.pix+s.card;$('gross').textContent=money(s.gross);$('expenses').textContent=money(s.expenses);$('profit').textContent=money(s.gross-s.expenses);$('clients').textContent=s.clients;$('cash').textContent=money(s.cash);$('pix').textContent=money(s.pix);$('card').textContent=money(s.card);$('paid').textContent=money(paid);$('serviceSummary').innerHTML=list.length?services.map((n,i)=>`<div class="row"><span>${n}</span><b>${money(s.services[i])}</b></div>`).join(''):'Nenhum lançamento neste período.';$('historyList').innerHTML=entries.length?[...entries].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<div class="entry"><div class="row"><b>${e.date.split('-').reverse().join('/')}</b><span class="amount">${money(e.gross)}</span></div><small>Despesas ${money(e.expenses)} · Lucro ${money(e.gross-e.expenses)} · ${e.clients} cliente(s)</small>${e.note?`<div class="hint">${escapeHtml(e.note)}</div>`:''}<button class="danger" style="padding:7px 10px;margin-top:7px" onclick="removeEntry('${e.id}')">Excluir</button></div>`).join(''):'Nenhum fechamento salvo.'}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 window.removeEntry=id=>{if(confirm('Excluir este fechamento?')){entries=entries.filter(e=>e.id!==id);save();render()}};
-function preview(){let total=services.reduce((a,_,i)=>a+val('svc'+i),0);$('preview').textContent='Total de serviços: '+money(total)+' · Pagamentos: '+money(val('fCash')+val('fPix')+val('fCard'))}
+function preview(){
+  let total=services.reduce((a,_,i)=>a+val('svc'+i),0);
+  let recebido=val('fCash')+val('fPix')+val('fCard');
+  let diferenca=recebido-total;
+  $('preview').innerHTML=
+    'Total de serviços: '+money(total)+
+    '<br>Total recebido: '+money(recebido)+
+    '<br>'+(diferenca>=0?'Diferença a maior: ':'Falta receber: ')+money(Math.abs(diferenca));
+}
 document.querySelectorAll('#serviceFields input,#new input:not(#date)').forEach(x=>x.addEventListener('input',()=>{preview();saveDraft()}));
 $('date').addEventListener('change',loadFormForDate);
 $('saveEntry').onclick=()=>{let f=readForm(),gross=f.services.reduce((a,b)=>a+b,0),date=f.date;if(!date)return alert('Informe a data.');let e={...f,id:entries.find(x=>x.date===date)?.id||Date.now().toString(),gross};let idx=entries.findIndex(x=>x.date===date);if(idx>=0)entries[idx]=e;else entries.push(e);save();localStorage.removeItem('mv_draft');alert('Fechamento do dia salvo! Existe apenas um registro para esta data.');showTab('dash');render()};
